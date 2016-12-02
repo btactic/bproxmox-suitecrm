@@ -1,0 +1,8 @@
+; Configuración API de Proxmox
+
+hostname = 'server.example.com'
+port = '8006'
+username = 'user'
+password = 'abcdefg12345678'
+realm = 'pve'
+
