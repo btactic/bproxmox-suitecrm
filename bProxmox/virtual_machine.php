@@ -45,6 +45,7 @@ class VirtualMachine {
             $bean->ram = $vm_info['memory'];
             $bean->mvid = $vm['vmid'];
             $bean->mac = isset($vm_info['net0']) ? $this->get_mac($vm_info['net0']) : "";
+            if (isset($vm_info['description'])) $bean->description = $vm_info['description'];
             /*list($virtios, $satas, $ides, $scsis) = $this->get_storage($vm_info);
             foreach ($virtios as $virtio) {
                 //
