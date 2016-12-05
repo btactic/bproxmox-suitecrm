@@ -50,10 +50,10 @@ class VirtualMachine {
             foreach ($virtios as $virtio) {
                 //
             }*/
-            $this->relate_vm_with_ips($bean, $bean->mac);
-            $this->relate_vm_with_server($bean, $server);
             $bean->estado_vm = 'Vigente';
             $bean->save();
+            $this->relate_vm_with_ips($bean, $bean->mac);
+            $this->relate_vm_with_server($bean, $server);
         }
     }
 
