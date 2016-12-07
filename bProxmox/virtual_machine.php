@@ -43,42 +43,66 @@ class VirtualMachine {
             $bean->cpu = $vm['cpus'];
             $server = $node['node'];
             $bean->ram = $vm_info['memory'];
-            $bean->mvid = $vm['vmid'];
+            $bean->vmid = $vm['vmid'];
             $bean->mac = isset($vm_info['net0']) ? $this->get_mac($vm_info['net0']) : "";
             if (isset($vm_info['description'])) $bean->description = $vm_info['description'];
-            /*list($virtios, $satas, $ides, $scsis) = $this->get_storage($vm_info);
-            foreach ($virtios as $virtio) {
-                //
-            }*/
             $bean->estado_vm = 'Vigente';
             $bean->save();
             $this->relate_vm_with_ips($bean, $bean->mac);
             $this->relate_vm_with_server($bean, $server);
+            $this->sync_virtual_machine_storages($bean, $vm_info);
         }
+    }
+
+    private function sync_virtual_machine_storages($vm_bean, $vm_info) {
+        $storages = $this->get_storage($vm_info);
+        foreach ($storages as $storage) {
+            $this->sync_virtual_machine_storage($vm_bean, $storage);
+        }
+    }
+
+    private function sync_virtual_machine_storage($vm_bean, $storage) {
+        $keys_values = array();
+        $keys_values['name'] = $storage['id'];
+        $hdd_bean = retrieve_record_bean('btc_Discos_duros', $keys_values);
+        $hdd_bean->tipo = 'virtual';
+        $hdd_bean->name = $storage['id'];
+        //$hdd_bean->clase = '';
+        $hdd_bean->bus = $storage['bus'];
+        $hdd_bean->cache = isset($storage['cache']) ? $storage['cache'] : 'default';
+        $hdd_bean->no_backup = (isset($storage['backup']) && $storage['backup'] == 0) ? '1' : '0';
+        $hdd_bean->device = $storage['device'];
+        $hdd_bean->discard = isset($storage['discard']) ? $storage['discard'] : '0';
+        $hdd_bean->io_thread = isset($storage['iothread']) ? $storage['iothread'] : '0';
+        $hdd_bean->capacidad_gb = to_gigabytes($storage['size']);
+        $hdd_bean->save();
+        $vm_bean->load_relationship('btc_discos_duros_btc_maquinas_virtuales');
+        $vm_bean->btc_discos_duros_btc_maquinas_virtuales->add($hdd_bean);
     }
 
     private function get_storage($vm_info) {
-        $virtios = Array();
-        $satas = Array();
-        $ides = Array();
-        $scsis = Array();
+        $storages = Array();
         foreach ($vm_info as $key => $value) {
             if (preg_match('/media=cdrom/', $value)) continue;
-            $value = explode(',', $value);
             if (preg_match('/^virtio[0-9][0-9]*$/', $key)) {
-                $virtios[] = $this->parse_storage($value);
+                $bus = 'virtio';
             } else if (preg_match('/^sata[0-9][0-9]*$/', $key)) {
-                $satas[] = $this->parse_storage($value);
+                $bus = 'sata';
             } else if (preg_match('/^ide[0-9][0-9]*$/', $key)) {
-                $ides[] = $this->parse_storage($value);
+                $bus = 'ide';
             } else if (preg_match('/^scsi[0-9][0-9]*$/', $key)) {
-                $scsis[] = $this->parse_storage($value);
-            }
+                $bus = 'scsi';
+            } else continue;
+            $storage = $this->parse_storage($value);
+            $storage['bus'] = $bus;
+            $storage['device'] = $key;
+            $storages[] = $storage;
         }
-        return Array($virtios, $satas, $ides, $scsis);
+        return $storages;
     }
 
     private function parse_storage($storage_info) {
+        $storage_info = explode(',', $storage_info);
         $info = Array("id" => $storage_info[0]);
         unset($storage_info[0]);
         foreach($storage_info as $atribute) {
