@@ -76,6 +76,7 @@ class VirtualMachine {
         $hdd_bean->io_thread = isset($storage['iothread']) ? $storage['iothread'] : '0';
         $hdd_bean->capacidad_gb = to_gigabytes($storage['size']);
         $hdd_bean->save();
+        $this->relate_hdd_with_storage($hdd_bean);
         $vm_bean->load_relationship('btc_discos_duros_btc_maquinas_virtuales');
         $vm_bean->btc_discos_duros_btc_maquinas_virtuales->add($hdd_bean);
     }
@@ -155,6 +156,14 @@ class VirtualMachine {
             $vm_bean->load_relationship('btc_maquinas_virtuales_btc_ip');
             $vm_bean->btc_maquinas_virtuales_btc_ip->add($ip_bean);
         }
+    }
+
+    private function relate_hdd_with_storage($hdd_bean) {
+        $keys_values = array();
+        $keys_values['name'] = explode(':', $hdd_bean->name)[0];
+        $storage_bean = retrieve_record_bean('btc_Discos_duros', $keys_values);
+        $hdd_bean->load_relationship('btc_discos_duros_btc_discos_duros');
+        $hdd_bean->btc_discos_duros_btc_discos_duros->add($storage_bean);
     }
 
 }
