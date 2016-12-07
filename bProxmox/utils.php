@@ -26,4 +26,25 @@ function bytes_to_gibibytes($bytes) {
     return bytes($bytes, 'GiB', false);
 }
 
+function to_gigabytes($size_info) {
+    $size = 0;
+    if (preg_match('/^([0-9]+(\.[0-9]+)?)([MGTP])$/', $size_info, $size_info)) {
+        switch ($size_info[3]) {
+            case 'M':
+                $size = $size_info[1] / 1024.0;
+                break;
+            case 'G':
+                $size = $size_info[1];
+                break;
+            case 'T':
+                $size = $size_info[1] * 1024;
+                break;
+            case 'P':
+                $size = $size_info[1] * 1024 * 1024;
+                break;
+        }
+    }
+    return sprintf('%.3f', $size);
+}
+
 ?>
