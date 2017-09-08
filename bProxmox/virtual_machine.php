@@ -138,8 +138,8 @@ class VirtualMachine {
         $keys_values['name'] = $servername;
         $server_bean = retrieve_record_bean('btc_Servidores', $keys_values);
         if (!empty($server_bean->id)) {
-            $server_bean->load_relationship('btc_servidores_btc_maquinas_virtuales');
-            $server_bean->btc_servidores_btc_maquinas_virtuales->add($vm_bean);
+            $server_bean->load_relationship('btc_maquinas_virtuales_btc_servidores');
+            $server_bean->btc_maquinas_virtuales_btc_servidores->add($vm_bean);
         }
     }
 
