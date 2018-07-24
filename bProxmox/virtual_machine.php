@@ -24,10 +24,16 @@ class VirtualMachine {
         if (isset($node_vms['errors'])) {
             $GLOBALS['log']->fatal("[bProxmox] Error retrieving VM list of node '".$node."'.");
         } else {
+            $this->set_server_vms_as_disabled($node['node']);
             foreach ($node_vms['data'] as $vm) {
                 $this->sync_virtual_machine($node, $vm);
             }
         }
+    }
+
+    private function get_vm_status($node, $vm) {
+        $vm_status = $this->proxmox->get('/nodes/'.$node['node']."/qemu/".$vm['vmid']."/status/current");
+        return $vm_status['data']['status'] == 'running' ? 'Vigente' : 'Apagada';
     }
 
     public function sync_virtual_machine($node, $vm) {
@@ -46,7 +52,7 @@ class VirtualMachine {
             $bean->vmid = $vm['vmid'];
             $bean->mac = isset($vm_info['net0']) ? $this->get_mac($vm_info['net0']) : "";
             if (isset($vm_info['description'])) $bean->description = $vm_info['description'];
-            $bean->estado_vm = 'Vigente';
+            $bean->estado_vm = $this->get_vm_status($node, $vm);
             $bean->save();
             $this->relate_vm_with_ips($bean, $bean->mac);
             $this->relate_vm_with_server($bean, $server);
@@ -141,6 +147,17 @@ class VirtualMachine {
             $server_bean->load_relationship('btc_maquinas_virtuales_btc_servidores');
             $server_bean->btc_maquinas_virtuales_btc_servidores->add($vm_bean);
         }
+    }
+
+    private function set_server_vms_as_disabled($servername) {
+        $sql = "UPDATE btc_servidores s, btc_maquinas_virtuales_btc_servidores_c ms, "
+                   ."btc_maquinas_virtuales m "
+              ."SET m.estado_vm = 'Baja' "
+              ."WHERE s.deleted = 0 AND ms.deleted = 0 AND m.deleted = 0 AND "
+                  ."ms.btc_maquinas_virtuales_btc_servidoresbtc_servidores_ida = s.id "
+                  ."AND ms.btc_maquinas_virtuales_btc_servidoresbtc_maquinas_virtuales_idb = m.id "
+                  ."AND s.name = '$servername'";
+        $GLOBALS['db']->query($sql);
     }
 
     private function relate_vm_with_ips($vm_bean, $mac) {
