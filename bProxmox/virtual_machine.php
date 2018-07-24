@@ -37,7 +37,7 @@ class VirtualMachine {
         } else {
             $vm_info = $vm_info['data'];
             $keys_values = array();
-            $keys_values['name'] = $vm['name'];;
+            $keys_values['vmid'] = $vm['vmid'];;
             $bean = retrieve_record_bean('btc_Maquinas_virtuales', $keys_values);
             $bean->name = $vm['name'];
             $bean->cpu = $vm['cpus'];
