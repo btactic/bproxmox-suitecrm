@@ -1,7 +1,6 @@
 <?php
 
-//require_once 'bProxmox/vendor/autoload.php';
-require_once 'bProxmox/ProxmoxVE/vendor/autoload.php';
+require_once 'bProxmox/vendor/autoload.php';
 use ProxmoxVE\Proxmox;
 
 class ProxmoxAPI {
