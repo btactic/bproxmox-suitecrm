@@ -13,6 +13,23 @@ So... do not ask for installation instructions on issues.
 
 Thank you!
 
+## Composer Packages
+
+To use the files in this repository, you will need to install the required Composer packages.
+
+### Installation of Composer Packages
+
+1. Make sure you have **Composer** installed on your system.
+2. Navigate to the next directory of this project.
+```bash
+cd bProxmox/
+```
+3. Run the following command to install the required packages:
+
+```bash
+php8.2 /usr/bin/composer install
+```
+
 ## Custom modules
 
 This module is intended to work with some of our custom Suitecrm modules:
